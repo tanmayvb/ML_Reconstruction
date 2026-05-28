@@ -1,0 +1,47 @@
+patch:
+    size: [48, 128, 128]
+    #size: [32, 64, 64]
+    stride: [24, 64, 64]
+    #stride: [48, 128, 128]
+    samples_per_epoch: 100
+    #positive_sampling_ratio: 0.7
+    positive_sampling_ratio: 0.1
+
+crop:
+    z0: 10
+    z1: 58
+    y0: 750
+    y1: 1250
+    x0: 1000
+    x1: 5400
+
+filter:
+    percentile: 50
+    min_distance: 3
+    contrast_thresh: 0.01
+
+detect:
+    threshold_abs: 0.3
+    min_distance: 3
+
+mask:
+    sigma_z: 1.5
+    #sigma_z: 4
+    sigma_xy: 5
+    #sigma_xy: 10
+
+training:
+    epochs: 100
+    batch_size: 1
+    #lr: 3e-5
+    lr: 0.0001
+    auto_lr: false
+    scheduler:
+      type: cosine # or step
+      step_size: 10
+      gamma: 0.5
+
+inference:
+    threshold: 0.9 #0.8 #0.5
+    min_size: 200 #20
+    stride: [24, 64, 64]

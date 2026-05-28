@@ -1,0 +1,53 @@
+[project]
+name = "trackrecon"
+version = "0.1.0"
+description = "3D reconstruction from brain signals using ML models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Tanmay Sarkar", email = "your.email@example.com" }
+]
+dependencies = [
+    "torch>=2.2.0",
+    "torchvision>=0.17.0",
+    "numpy>=1.24.0",
+    "mne>=1.6.0",             
+    "bioio>=1.3.0",
+    "bioio-ome-tiff",
+    "bioio-czi",
+    "tifffile",
+    "bioio-tifffile",
+    "ome-types",
+    "xarray",
+    "dask[array]",
+    "scipy>=1.11.0",          
+    "scikit-learn>=1.4.0",    
+    "napari",
+    "matplotlib>=3.8.0",      
+    "pandas>=2.2.0",          
+    "h5py>=3.10.0",           
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "black>=24.0.0",
+    "ipykernel>=6.29.0",      
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+]
+
+
+#[tool.hatch.build.targets.wheel]
+#packages = ["src/trackrecon"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
