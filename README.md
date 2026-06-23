@@ -98,7 +98,7 @@ Inference / Prediction
         ↓
 Thresholding + Connected Components
         ↓
-Axon / Dendrite Classification
+Axon/Dendrite Classification
         ↓
 Evaluation + Visualization
 ```
@@ -109,21 +109,18 @@ Evaluation + Visualization
 
 ```text
 ML_Reconstruction/
-
-├── configs/
-├── data/
-├── models/
-├── preprocessing/
-├── patching/
-├── inference/
-├── scripts/
-├── plots/
-├── training/
-├── Documentation/
-├── run_experiment_main_pipeline_script.py
-└── README.md
+  └──src
+       └──trackrecon
+            ├── data/
+            ├── models/
+            ├── patching/
+            ├── inference/
+            ├── scripts/
+            ├── training/
+  ├── run_experiment_main_pipeline_script.py, pyproject.toml ...etc ...
+  └── README.md
+  └── slurm
 ```
-
 ---
 
 # Installation
@@ -283,10 +280,10 @@ uv run python run_experiment_main_pipeline_script.py \
 ```
 ## Output:
 
-preprocessing/
-├── csv/
-├── masks/
-└── plots/
+preprocessing/..
+├── csv/..
+├── masks/..
+└── plots/..
 
 **Step2: Single Training**
 
