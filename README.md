@@ -1,4 +1,4 @@
-# ML_Reconstruction
+# ML\_Reconstruction
 
 ## Machine Learning-Based 3D U-Net Detection of Brain Spines, Axons, and Dendrites
 
@@ -263,17 +263,106 @@ The pipeline internally converts data into normalized 3D volumes.
 
 # Example Run
 
-## Full pipeline
+## Full pipeline for local Testing/Run
+
+### Recommended sanity test before launching GPU jobs:
+
+**Step1: Preprocessing**
+
+```bash
+uv run python run_experiment_main_pipeline_script.py \
+  --tiff input_volume.ome.tiff \
+  --infile_yaml config.yaml \
+  --raw_stat \ 
+  --roi \
+  --run_detect \ 
+  --run_filter \
+  --run_mask \
+  --save_plots \
+  --outdir_local preprocessing
+```
+## Output:
+
+preprocessing/
+├── csv/
+├── masks/
+└── plots/
+
+**Step2: Single Training**
+
+```bash
+uv run python run_experiment_main_pipeline_script.py \ 
+  --tiff INPUT.ome.tiff \ 
+  --infile_yaml config.yaml \ 
+  --roi \ 
+  --run_train \ 
+  --lr 1e-4 \ 
+  --patches_per_epoch 100 \ 
+  --preprocess_dir preprocessing \
+  --outdir_local experiments \ 
+  --save_plots
+```
+## Output structure:
+
+experiments/
+└── `lr_1e-4_patch_100/`
+    ├── models/
+    └── plots/
+
+**Step 3: Inference and Evaluation : Single Evaluation**
+
+```bash
+uv run python run_experiment_main_pipeline_script.py \ 
+  --tiff INPUT.ome.tiff \ 
+  --infile_yaml config.yaml \ 
+  --roi \ 
+  --run_infer \ 
+  --pred_all \ 
+  --pred_septs \ 
+  --preprocess_dir preprocessing \ 
+  --model_path experiments/lr_1e-4_patch_100/models/model.pth \ 
+  --threshold 0.8 \ 
+  --min_size 50 \ 
+  --outdir_local experiments \ 
+  --save_result \ 
+  --save_plots
+```
+## Output structure:
+
+experiments/
+└── `lr_1e-4_patch_100/`
+    └── `eval_thr_0.8_min_50/`
+        ├── `prediction_volume.ome.tiff`
+        ├── results.csv
+        └── plots/
+## Verify:
+
+**model.pth
+prediction_volume.ome.tiff
+results.csv**
+
+are generated successfully.
+
+---
+
+## Run all step in once (need to be update better to use the abobe local run steps):
 
 ```bash
 uv run python run_experiment_main_pipeline_script.py \
     --tiff input_volume.ome.tiff \
+    --infile_yaml config.yaml
+    --roi **If needed**
     --run_all
 ```
-
 ---
 
 # Example Pipeline Stages
+
+## Statistical information from RAW data
+
+```bash
+--raw_stat
+```
 
 ## ROI extraction
 
@@ -401,6 +490,188 @@ This functionality is modular and can be extended for:
 
 ---
 
+# Hyperparameter Optimization and GPU Execution
+## Overview
+
+The reconstruction pipeline supports:
+
+* Preprocessing (Detection → Filtering → Mask Generation)
+* Model Training (3D U-Net)
+* Inference and Post-processing
+* Hyperparameter Optimization
+* Large-scale GPU Grid Search using SLURM
+
+The recommended workflow is:
+
+Preprocessing
+      ↓
+9 Training Jobs
+      ↓
+81 Evaluation Jobs
+      ↓
+Summary Ranking
+
+## Step 1: Preprocessing (Instruction same as in local Testing/Run section)
+
+**Run preprocessing only once:
+
+This stage:
+
+* Detects candidate points
+* Filters noisy detections
+* Generates Gaussian masks
+* Generates ROI volume (optional)
+* Save preprocessing plots(optional)
+
+
+## Step 2: Training (Instruction same as in local Testing/Run section)
+
+Training uses preprocessing outputs generated in Step 1.
+
+## Step 3: Inference and Evaluation (Instruction same as in local Testing/Run section)
+
+Inference uses a trained model and evaluates post-processing parameters.
+
+---
+
+# Hyperparameter Scan
+
+## Training Grid
+
+Learning rates: [1e-4, 1e-5, 1e-6]
+
+Patches per epoch: [100, 200, 400]
+
+Total training jobs: 3 × 3 = 9
+
+## Evaluation Grid
+
+Threshold: [0.7, 0.8, 0.9]
+
+Minimum connected-component size: [50, 100, 250]
+
+Total evaluations per model: 3 × 3 = 9
+
+Total evaluations: 9 models × 9 evaluations = 81
+
+## Final Directory Structure
+
+preprocessing/
+├── csv/
+├── masks/
+└── plots/
+
+experiments/
+├── `lr_1e-4_patch_100/
+├── lr_1e-4_patch_200/
+├── lr_1e-4_patch_400/
+├── lr_1e-5_patch_100/
+├── lr_1e-5_patch_200/
+├── lr_1e-5_patch_400/
+├── lr_1e-6_patch_100/
+├── lr_1e-6_patch_200/
+└── lr_1e-6_patch_400/`
+
+and plot sub directory
+
+---
+# GPU Execution with SLURM
+
+## The pipeline supports large-scale parameter scans using SLURM arrays.
+
+**Workflow:**
+
+Preprocessing
+      ↓
+9 Training Jobs
+      ↓
+81 Evaluation Jobs
+      ↓
+summary.csv
+
+## Recommended resources:
+
+### Training:
+
+GPU: 1
+CPU: 8
+Memory: 64 GB
+Time: 48 hours
+
+### Evaluation:
+
+GPU: 1
+CPU: 4
+Memory: 32 GB
+Time: 12 hours
+Result Aggregation
+
+## Submission SLURM files:
+
+Files are here
+ * `ML_Reconstruction`/
+    └── slurm/
+     ├── preprocess.slurm
+     ├── `train_grid.slurm`
+     └── `eval_grid.slurm`
+
+From the repository root:
+
+```bash
+cd ~/MLtorch/ML_Reconstruction
+mkdir -p logs
+```
+
+```bash
+PRE=$(sbatch slurm/preprocess.slurm | awk '{print $4}')
+
+TRAIN=$(sbatch \
+    --dependency=afterok:$PRE \
+    slurm/train_grid.slurm | awk '{print $4}')
+
+sbatch \
+    --dependency=afterok:$TRAIN \
+    slurm/eval_grid.slurm
+```
+
+**OR** 
+
+```bash
+sh submit_slurm.sh
+```
+This will automatically run:
+
+* 1 preprocessing job
+* 9 training jobs
+* 81 evaluation jobs
+* Total = 91 jobs, in the correct order.
+
+---
+
+## After all evaluations complete:
+
+```bash
+uv run python scripts/build_summary.py
+```
+
+Produces: summary.csv
+
+containing:
+
+* lr
+* `patches_per_epoch`
+* threshold
+* `min_size`
+* precision
+* recall
+* f1
+
+sorted by descending F1 score.
+
+The top-ranked configuration can then be selected as the final optimized model.
+
+---
+
 # Future Development
 
 Planned improvements:
@@ -412,6 +683,7 @@ Planned improvements:
 * transformer-based segmentation
 * support for additional microscopy modalities
 * large-scale inference benchmarking
+* Separate the plot codes/scripts from main run
 
 ---
 

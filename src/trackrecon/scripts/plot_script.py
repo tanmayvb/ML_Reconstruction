@@ -2386,7 +2386,7 @@ def visualize_prediction_results(
         "axon_dendrite_visualization"
     )
 
-    plt.close()
+    #plt.close()
 
 
 """

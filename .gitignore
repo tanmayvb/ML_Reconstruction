@@ -49,6 +49,9 @@ __pycache__/
 # Models
 *.pth
 *.pt
+*.out
+*.err
+*.ome.tiff
 
 # Microscopy data
 *.czi
@@ -70,6 +73,9 @@ napari-env/
 outputs/
 results/
 plots/
+logs/
+preprocessing/
+experiments/
 
 # PDF
 *.pdf

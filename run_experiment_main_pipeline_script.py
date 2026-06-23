@@ -88,6 +88,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--lr",
+        type=float,
+        default=None,
+        help="Override learning rate"
+    )
+
+    parser.add_argument(
+        "--patches_per_epoch",
+        type=int,
+        default=None,
+        help="Override patches per epoch"
+    )
+
+    parser.add_argument(
         "--raw_stat",
         action="store_true"
     )
@@ -105,6 +119,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--run_mask", 
         action="store_true"
+    )
+
+    parser.add_argument(
+        "--preprocess_dir",
+        type=str,
+        default=None,
+        help="Directory containing preprocessing outputs (csv, masks)"
     )
 
     parser.add_argument(
@@ -144,9 +165,29 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "--model_path",
+        type=Path,
+        help="Provide saved model path for inference/evaluation"
+    )
+
+    parser.add_argument(
         "--input_filterpoints",
         type=Path,
         help="Provide saved train model path"
+    )
+
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=None,
+        help="Override inference threshold"
+    )
+
+    parser.add_argument(
+        "--min_size",
+        type=int,
+        default=None,
+        help="Override inference minimum component size"
     )
 
     parser.add_argument(
@@ -357,44 +398,59 @@ def main():
     print(f"\n Output directory name : {output_dir} {args.outdir_local}")
 
     # -------------------------------------------------
+    # Preprocessing directory
+    # -------------------------------------------------
+    if args.preprocess_dir is not None:
+        preprocess_dir = Path(args.preprocess_dir)
+    else:
+        preprocess_dir = output_dir
+
+    # -------------------------------------------------
     # Main directories
     # -------------------------------------------------
+    mask_dir = preprocess_dir / "masks"
+    csv_dir = preprocess_dir / "csv"
     plot_dir = output_dir / "plots"
-    model_dir = output_dir / "models"
-    mask_dir = output_dir / "masks"
-    csv_dir = output_dir / "csv"
 
     # -------------------------------------------------
     # Plot subdirectories
     # -------------------------------------------------
     preprocess_plot_dir = plot_dir / "preprocessing"
-    training_plot_dir = plot_dir / "training"
-    inference_plot_dir = plot_dir / "inference"
-    evaluation_plot_dir = plot_dir / "evaluation"
+    #training_plot_dir = plot_dir / "training"
+    #inference_plot_dir = plot_dir / "inference"
+    #evaluation_plot_dir = plot_dir / "evaluation"
 
-    # -------------------------------------------------
-    # Create all sub/directories
-    # -------------------------------------------------
-    dirs = [
-        plot_dir,
-        model_dir,
-        mask_dir,
-        csv_dir,
-        preprocess_plot_dir,
-        training_plot_dir,
-        inference_plot_dir,
-        evaluation_plot_dir
-    ]
+    train_experiment_dir = None
+    eval_dir = None
 
-    for d in dirs:
-        d.mkdir(parents=True, exist_ok=True)
+    if (
+        args.run_detect
+        or args.run_filter
+        or args.run_mask
+    ):
+
+        csv_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+        mask_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )    
+
+        preprocess_plot_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
     # -------------------------------------------------
     # Run all main steps once
     # Need some switch on/off by hand like --roi
     # -------------------------------------------------
     if args.run_all:
-        args.raw_stat = args.run_detect = args.run_filter = args.run_mask = args.run_train = args.run_infer = args.save_result = args.save_plots = True
+        args.raw_stat = args.run_detect = args.run_filter = args.run_mask = args.run_train = args.run_infer = args.save_result = args.save_plots = \
+        args.pred_all = args.pred_septs = True
 
     # ====================================
     # All args and cfg parameters
@@ -403,8 +459,16 @@ def main():
     volume = load_volume(tiff_file)
 
     base = tiff_file.stem.replace(".ome", "")
+    # ---------------------------------------------------
+    # Standard file paths
+    # ---------------------------------------------------
     raw_csv = csv_dir / f"{base}_points.csv"
+
     filt_csv = csv_dir / f"{base}_points_filtered.csv"
+
+    mask_file = mask_dir / f"{base}_mask.ome.tiff"
+
+    roi_tiff = mask_dir / f"{base}_roi.ome.tiff"
 
     validate_pipeline(tiff_file, cfg)
     validate_config(cfg)
@@ -435,8 +499,12 @@ def main():
     # ---------------------------------
     # Save processed ROI image
     # ---------------------------------
-    if args.roi:
-        roi_tiff = mask_dir / f"{base}_roi.ome.tiff"
+    if args.roi and (
+        args.run_detect
+        or args.run_filter
+        or args.run_mask
+    ):
+        #roi_tiff = mask_dir / f"{base}_roi.ome.tiff"
 
         tiff.imwrite(
             roi_tiff,
@@ -530,7 +598,7 @@ def main():
             contrast_thresh = cfg["filter"]["contrast_thresh"]
         )
 
-        print(f"[DEBUG] Original Points : {len(points)}")
+        print(f"[DEBUG] Original Points : {len(detect_points)}")
         print(f"[DEBUG] Filtered Points : {len(filtered_points)}")
 
         save_points_csv(filtered_points, filt_csv, scores=scores)
@@ -584,7 +652,7 @@ def main():
             sigma_xy=cfg["mask"]["sigma_xy"]
         )
 
-        mask_file = mask_dir / f"{base}_mask.ome.tiff"
+        #mask_file = mask_dir / f"{base}_mask.ome.tiff"
         tiff.imwrite(
             mask_file,
             mask.astype("float32")
@@ -643,7 +711,7 @@ def main():
             )
          
             spatial_distribution(
-                filtered_points,
+                filt_points,
                 preprocess_plot_dir
             )
    
@@ -651,25 +719,66 @@ def main():
     # TRAIN MODEL
     # -------------------
     if args.run_train:
+        if args.lr is not None and args.patches_per_epoch is not None:
+
+            lr_str = f"{args.lr:.0e}".replace("e-0", "e-")
+
+            train_experiment_dir = output_dir / f"lr_{lr_str}_patch_{args.patches_per_epoch}"
+            print(f"[INFO] Training directory: {train_experiment_dir}")
+
+            model_dir = train_experiment_dir / "models"
+            training_plot_dir = train_experiment_dir / "plots"
+
+            train_experiment_dir.mkdir(
+                parents=True, 
+                exist_ok=True
+            )
+            model_dir.mkdir(
+                parents=True,
+                exist_ok=True
+            )
+            training_plot_dir.mkdir(
+                parents=True,
+                exist_ok=True
+            )
+
         print("=============== Training... ============================== \n")
+
+
+        # ----------------------
+        #Protecting/Checking ROI
+        # ----------------------       
         if args.roi:
-            image_paths = [roi_tiff]     
+            if not roi_tiff.exists():
+                raise FileNotFoundError(
+                f"\nROI file not found:\n{roi_tiff}\n\n"
+                "Run preprocessing first."
+            )
+
+            image_paths = [roi_tiff]
+
         else:
-            image_paths = [tiff_file] 
-        
+            image_paths = [tiff_file]
+
+        # -------------------
+        #Protecting Mask file
+        # -------------------       
+        if not mask_file.exists():
+            raise FileNotFoundError(
+                f"\nMask file not found:\n{mask_file}\n\n"
+                "Run --run_mask first." 
+            )
         mask_paths = [mask_file]
 
-        if mask_file.exists(): 
-            print(f"[DEBUG : ] Mask File found: {mask_file}")
-        else:
-            print(f"[DEBUG : ] Check File and OR name !!")
+        print(f"[DEBUG] Mask File found: {mask_file}")
+        print(f"[DEBUG] Image File found: {image_paths[0]}")
 
         if tiff_file.exists(): 
             print(f"[DEBUG : ] Tiff File found: {tiff_file}")
         else:
             print(f"[DEBUG : ] Check File !!")
 
-        model_path, loss_history, lr_history = train_model(image_paths, mask_paths, model_dir, cfg) #args=args
+        model_path, loss_history, lr_history = train_model(image_paths, mask_paths, model_dir, cfg, args=args)
         #model_path = train_model(volume, image_paths, mask_paths, output_dir)
 
         # ----------------------------------
@@ -698,11 +807,45 @@ def main():
     if args.run_infer:
         print("===============Running INFERENCE==============================\n")
 
-        if args.input_modelpath:
+        if args.model_path:
+            model_path = args.model_path
+        elif args.input_modelpath:
             model_path = args.input_modelpath
         else:
             model_path = model_dir/"model.pth"
         
+        if args.threshold is not None:
+            cfg["inference"]["threshold"] = args.threshold
+        if args.min_size is not None:
+            cfg["inference"]["min_size"] = args.min_size
+
+        threshold = cfg["inference"]["threshold"]
+        min_size = cfg["inference"]["min_size"]
+
+        if model_path.parent.name == "models":
+            eval_root = model_path.parent.parent
+        else:
+            eval_root = model_path.parent
+
+        eval_dir = (
+            eval_root / 
+            f"eval_thr_{threshold}_min_{min_size}"
+        )
+
+        evaluation_plot_dir = (
+            eval_dir / 
+            "plots"
+        )
+
+        eval_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+        evaluation_plot_dir.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
         print(f"Model Path: { model_path}")
 
         device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
@@ -726,6 +869,12 @@ def main():
                          device=device
                      )
 
+        pred_file = eval_dir / "prediction_volume.ome.tiff"
+        tiff.imwrite(
+            pred_file,
+            prediction.astype(np.float32)
+        )
+        print(f"[INFO] Prediction saved: {pred_file}\n")
         print("Inference time:", time.time() - start)
         print(f"Shape Volume: {volume.shape}")
         print(f"Shape      : {volume.shape}")
@@ -763,7 +912,7 @@ def main():
                 min_size
             )
 
-        print(f"Detected spines: {len(pred_spines)}")
+            print(f"Detected spines: {len(pred_spines)}")
 
         if args.pred_septs:
             structures, labeled = extract_structures(
@@ -901,12 +1050,11 @@ def main():
             )
 
             visualize_prediction_results(
-                volume=volume,
-                prediction=prediction,
-                structures=structures,
-                save_path=(
-                    evaluation_plot_dir
-                )
+                volume, #=volume,
+                prediction, #=prediction,
+                structures, #=structures,
+                evaluation_plot_dir
+                
             ) 
 
 
@@ -914,14 +1062,32 @@ def main():
     # SAVE RESULT
     # -------------------
     if args.save_result:
-        results_file = output_dir / "results.csv"
+        if eval_dir is not None:
+            results_file = eval_dir / "results.csv"
+        else:
+            results_file = output_dir / "results.csv"
 
         result = {
+            "model_name": model_path.parent.parent.name,
             "dataset": base,
             "precision": precision,
             "recall": recall,
             "f1": f1,
             "n_spines": len(pred_spines),
+
+            "lr":
+                args.lr if args.lr is not None
+                else cfg["training"]["lr"],
+
+            "patches_per_epoch":
+                args.patches_per_epoch if args.patches_per_epoch is not None
+                else cfg["training"]["patches_per_epoch"],
+
+            "threshold":
+                cfg["inference"]["threshold"],
+
+            "min_size":
+                cfg["inference"]["min_size"],
             **cfg.get("filter", {}),
             **cfg.get("mask", {}),
             **cfg.get("training", {}),

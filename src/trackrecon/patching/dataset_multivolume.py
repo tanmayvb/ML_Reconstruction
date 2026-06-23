@@ -11,16 +11,16 @@ class MultiVolumeDataset(Dataset):
             self,
             image_paths,
             mask_paths,
+            positive_sampling_ratio,
+            patches_per_epoch,
             patch_size=(48, 128, 128),
-            positive_sampling_ratio=0.7,
-            patches_per_epoch=200,
     ):
 
         print("[DEBUG] Initializing MultiVolumeDataset")
 
-        self.patch_size = patch_size
         self.positive_sampling_ratio = positive_sampling_ratio
         self.patches_per_epoch = patches_per_epoch
+        self.patch_size = patch_size
 
         # ---------------------------------
         # Load images

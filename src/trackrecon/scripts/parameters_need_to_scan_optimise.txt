@@ -1,0 +1,135 @@
+| Parameter        | Effect                      |
+| ---------------- | --------------------------- |
+| percentile = 60  | more points (higher recall) |
+| percentile = 70  | balanced ✅                  |
+| percentile = 80  | stricter                    |
+| min_distance = 3 | default                     |
+| min_distance = 5 | more aggressive merging     |
+
+
+
+
+percentile
+min_distance
+
+Suggested scan:
+
+percentile = [50, 60, 70, 80]
+min_distance = [2, 3, 4]
+
+
+
+Gaussian Mask
+
+Parameters:
+sigma_z
+sigma_xy
+
+Suggested scan:
+
+sigma_z  = [1.5, 2, 3]
+sigma_xy = [3, 4, 5, 6]
+
+
+Training moderate importance
+
+Parameters:
+
+learning_rate
+patch_size
+sampling_ratio
+
+Suggested scan:
+lr = [1e-4, 5e-5, 3e-5]
+sampling_ratio (spine) = [0.5, 0.7, 0.9]
+
+
+Inference / Post-processing (VERY IMPORTANT)
+
+Parameters:
+threshold
+min_size
+
+Suggested scan:
+threshold = [0.3, 0.4, 0.5, 0.6, 0.7]
+min_size  = [10, 20, 30]
+
+
+=====================================================================
+
+TOTAL GRID (RAW)
+
+If you combine everything:
+
+4 × 3 × 3 × 4 × 3 × 5 × 3 = HUGE (~2000+ runs) >> NOT practical
+
+>> Fix filtering + mask (percentile, sigma)
+
+   keep training + inference fixed
+
+   Run grid:
+   percentile = [60, 70, 80]
+   sigma_xy   = [4, 5, 6]
+   sigma_z    = [2]
+
+   9 runs
+
+>> Training tuning
+   
+   Fix best mask → scan:
+
+   lr = [1e-4, 5e-5, 3e-5]
+   sampling_ratio = [0.7, 0.9]
+
+   6 runs
+
+>> Inference tuning
+
+   Fix model → scan:
+
+   threshold = [0.4, 0.5, 0.6, 0.7]
+   min_size  = [10, 20, 30]
+
+   12 runs
+
+Total efficient runs:
+~9 + 6 + 12 = ~27 runs
+
+ manageable on cluster
+ scientifically meaningful
+
+Example job config (important)
+
+Create config per run:
+
+percentile: 70
+min_distance: 3
+sigma_z: 2
+sigma_xy: 5
+lr: 3e-5
+sampling_ratio: 0.7
+threshold: 0.6
+min_size: 20
+
+Output to track (VERY IMPORTANT)
+
+For each run, store:
+
+precision
+recall
+f1 score
+# detected spines
+
+ Compute F1:
+f1 = 2 * (precision * recall) / (precision + recall + 1e-8)
+Final selection criterion
+maximize F1 score
+Bonus (advanced idea)
+
+Plot:
+
+Precision vs Recall curve
+
+choose optimal operating point
+
+

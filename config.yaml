@@ -31,10 +31,12 @@ mask:
     #sigma_xy: 10
 
 training:
-    epochs: 100
+    epochs: 2
     batch_size: 1
     #lr: 3e-5
     lr: 0.0001
+    patches_per_epoch: 200
+    positive_sampling_ratio: 0.7
     auto_lr: false
     scheduler:
       type: cosine # or step
