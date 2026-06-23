@@ -280,10 +280,10 @@ uv run python run_experiment_main_pipeline_script.py \
 ```
 ## Output:
 
-preprocessing/..
-├── csv/..
-├── masks/..
-└── plots/..
+preprocessing/<br>
+├── csv/<br>
+├── masks/<br>
+└── plots/<br>
 
 **Step2: Single Training**
 
@@ -301,10 +301,10 @@ uv run python run_experiment_main_pipeline_script.py \
 ```
 ## Output structure:
 
-experiments/
-└── `lr_1e-4_patch_100/`
-    ├── models/
-    └── plots/
+experiments/<br>
+└── `lr_1e-4_patch_100/`<br>
+    ├── models/<br>
+    └── plots/<br>
 
 **Step 3: Inference and Evaluation : Single Evaluation**
 
@@ -327,11 +327,11 @@ uv run python run_experiment_main_pipeline_script.py \
 ## Output structure:
 
 experiments/
-└── `lr_1e-4_patch_100/`
-    └── `eval_thr_0.8_min_50/`
-        ├── `prediction_volume.ome.tiff`
-        ├── results.csv
-        └── plots/
+└── `lr_1e-4_patch_100/`<br>
+    └── `eval_thr_0.8_min_50/`<br>
+        ├── `prediction_volume.ome.tiff`<br>
+        ├── results.csv<br>
+        └── plots/<br>
 ## Verify:
 
 **model.pth
@@ -553,21 +553,21 @@ Total evaluations: 9 models × 9 evaluations = 81
 
 ## Final Directory Structure
 
-preprocessing/
-├── csv/
-├── masks/
-└── plots/
+preprocessing/<br>
+├── csv/<br>
+├── masks/<br>
+└── plots/<br>
 
-experiments/
-├── `lr_1e-4_patch_100/
-├── lr_1e-4_patch_200/
-├── lr_1e-4_patch_400/
-├── lr_1e-5_patch_100/
-├── lr_1e-5_patch_200/
-├── lr_1e-5_patch_400/
-├── lr_1e-6_patch_100/
-├── lr_1e-6_patch_200/
-└── lr_1e-6_patch_400/`
+experiments/<br>
+├── `lr_1e-4_patch_100/`<br>
+├── `lr_1e-4_patch_200/`<br>
+├── `lr_1e-4_patch_400/`<br>
+├── `lr_1e-5_patch_100/`<br>
+├── `lr_1e-5_patch_200/`<br>
+├── `lr_1e-5_patch_400/`<br>
+├── `lr_1e-6_patch_100/`<br>
+├── `lr_1e-6_patch_200/`<br>
+└── `lr_1e-6_patch_400/`<br>
 
 and plot sub directory
 
@@ -606,11 +606,11 @@ Result Aggregation
 ## Submission SLURM files:
 
 Files are here
- * `ML_Reconstruction`/
-    └── slurm/
-     ├── preprocess.slurm
-     ├── `train_grid.slurm`
-     └── `eval_grid.slurm`
+ * `ML_Reconstruction`/<br>
+    └── slurm/<br>
+     ├── preprocess.slurm<br>
+     ├── `train_grid.slurm`<br>
+     └── `eval_grid.slurm`<br>
 
 From the repository root:
 
