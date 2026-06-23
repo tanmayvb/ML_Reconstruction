@@ -556,7 +556,7 @@ Total evaluations: 9 models × 9 evaluations = 81
 preprocessing/<br>
 ├── csv/<br>
 ├── masks/<br>
-└── plots/<br>
+├── plots/<br>
 
 experiments/<br>
 ├── `lr_1e-4_patch_100/`<br>
@@ -578,39 +578,39 @@ and plot sub directory
 
 **Workflow:**
 
-Preprocessing
-      ↓
-9 Training Jobs
-      ↓
-81 Evaluation Jobs
-      ↓
-summary.csv
+Preprocessing<br>
+      ↓<br>
+9 Training Jobs<br>
+      ↓<br>
+81 Evaluation Jobs<br>
+      ↓<br>
+summary.csv<br>
 
 ## Recommended resources:
 
 ### Training:
 
-GPU: 1
-CPU: 8
-Memory: 64 GB
-Time: 48 hours
+* GPU: 1
+* CPU: 8
+* Memory: 64 GB
+* Time: 48 hours
 
 ### Evaluation:
 
-GPU: 1
-CPU: 4
-Memory: 32 GB
-Time: 12 hours
-Result Aggregation
+* GPU: 1
+* CPU: 4
+* Memory: 32 GB
+* Time: 12 hours
+* Result Aggregation
 
 ## Submission SLURM files:
 
 Files are here
  * `ML_Reconstruction`/<br>
-    └── slurm/<br>
-     ├── preprocess.slurm<br>
-     ├── `train_grid.slurm`<br>
-     └── `eval_grid.slurm`<br>
+      └── slurm/<br>
+            ├── preprocess.slurm<br>
+            ├── `train_grid.slurm`<br>
+            └── `eval_grid.slurm`<br>
 
 From the repository root:
 
