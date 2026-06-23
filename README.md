@@ -500,11 +500,11 @@ The reconstruction pipeline supports:
 
 The recommended workflow is:
 
-Preprocessing
+Preprocessing <br>
       ↓
-9 Training Jobs
+9 Training Jobs <br>
       ↓
-81 Evaluation Jobs
+81 Evaluation Jobs <br>
       ↓
 Summary Ranking
 
@@ -613,6 +613,8 @@ Files are here
             └── `eval_grid.slurm`<br>
 
 From the repository root:
+
+**NOTE: Update the TIFF file path inside every slurm directory files**
 
 ```bash
 cd ~/MLtorch/ML_Reconstruction
