@@ -259,7 +259,7 @@ The pipeline internally converts data into normalized 3D volumes.
 Run command to convert czi file to tiff:
 
 ```bash
-uv run python czi_to_ometiff_bioio.py \
+uv run python /ML_Reconstruction/src/trackrecon/data/czi_to_ometiff_bioio.py \
     --czi_file /path/to/file.czi \
     --output_dir converted_data
 ```
@@ -268,7 +268,7 @@ uv run python czi_to_ometiff_bioio.py \
 Example with Airyscan data:
 
 ```bash
-uv run python czi_to_ometiff_bioio.py \
+uv run /ML_Reconstruction/src/trackrecon/data/python czi_to_ometiff_bioio.py \
     --czi_file src/trackrecon/data/Airyscan_data/ESI008_20260412_slice02_cell01-Airyscan-Processing-08-Stitching-09.czi \
     --output_dir src/trackrecon/data/Airyscan_data
 ```
@@ -284,7 +284,7 @@ Specific channel and timepoint:
 For example, channel 1 and timepoint 0:
 
 ```bash
-uv run python czi_to_ometiff_bioio.py \
+uv run python /ML_Reconstruction/src/trackrecon/data/czi_to_ometiff_bioio.py \
     --czi_file myfile.czi \
     --output_dir converted_data \
     --channel 1 \
