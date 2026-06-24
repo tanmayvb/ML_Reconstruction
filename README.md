@@ -671,6 +671,83 @@ The top-ranked configuration can then be selected as the final optimized model.
 
 ---
 
+# Colab Setup
+
+Clone Repository:
+
+```bash
+git clone https://github.com/tanmayvb/ML_Reconstruction.git
+%cd ML_Reconstruction
+```
+Install UV:
+
+```bash
+pip install -q uv
+```
+Install project dependencies:
+
+```bash
+uv sync
+```
+
+Verify installation:
+
+```bash
+!uv run python -c "import torch; print(torch.__version__)"
+!uv run python -c "import bioio; print('bioio OK')"
+!uv run python -c "import tifffile; print('tifffile OK')"
+```
+
+## Verify GPU
+
+```python
+import torch
+
+print(torch.cuda.is_available())
+print(torch.cuda.get_device_name(0))
+```
+or Run
+```bash
+python colab_verify_gpu.py
+```
+## Preprocessing
+
+```bash
+!uv run python run_experiment_main_pipeline_script.py \
+    --tiff INPUT.ome.tiff \
+    --infile_yaml config.yaml \
+    --roi \
+    --run_detect \
+    --run_filter \
+    --run_mask \
+    --save_plots \
+    --outdir_local preprocessing
+```
+**Run only once.**
+
+## Full Grid Launcher
+
+Run
+```bash
+uv run python colab_run_grid.py
+```
+---
+
+---
+# Additional Note
+
+## Best use of Colab <br>
+* Test one training
+* Test one evaluation
+* Debug pipeline
+
+## Best use of HPC cluster <br>
+* Run full 9×81 scan using the SLURM files
+* For the full optimization campaign, the SLURM cluster is still the right platform. 
+* Colab is excellent for validation and debugging before submission.
+
+---
+
 # Future Development
 
 Planned improvements:
