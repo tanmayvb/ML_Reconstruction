@@ -256,6 +256,45 @@ Supported microscopy formats:
 
 The pipeline internally converts data into normalized 3D volumes.
 
+Run command to convert czi file to tiff:
+
+```bash
+uv run python czi_to_ometiff_bioio.py \
+    --czi_file /path/to/file.czi \
+    --output_dir converted_data
+```
+
+
+Example with Airyscan data:
+
+```bash
+uv run python czi_to_ometiff_bioio.py \
+    --czi_file src/trackrecon/data/Airyscan_data/ESI008_20260412_slice02_cell01-Airyscan-Processing-08-Stitching-09.czi \
+    --output_dir src/trackrecon/data/Airyscan_data
+```
+
+This will produce:
+
+`/src/trackrecon/data/Airyscan_data/`<br>
+├── `ESI008_20260412_slice02_cell01-Airyscan-Processing-08-Stitching-09.ome.tiff`<br>
+└── `ESI008_20260412_slice02_cell01-Airyscan-Processing-08-Stitching-09_metadata.json`<br>
+
+Specific channel and timepoint:
+
+For example, channel 1 and timepoint 0:
+
+```bash
+uv run python czi_to_ometiff_bioio.py \
+    --czi_file myfile.czi \
+    --output_dir converted_data \
+    --channel 1 \
+    --timepoint 0
+```
+First check dimensions, script prints:
+
+* Scenes: ...
+* Dims  : ...
+* and verify:Volume shape: (Z, Y, X)
 ---
 
 # Example Run
