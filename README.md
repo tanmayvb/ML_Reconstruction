@@ -303,6 +303,8 @@ First check dimensions, script prints:
 
 ### Recommended sanity test before launching GPU jobs:
 
+**Note: Use the converted output ome.tiff file by running the above step**
+
 **Step1: Preprocessing**
 
 ```bash
