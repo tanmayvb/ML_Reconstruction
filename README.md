@@ -303,7 +303,12 @@ First check dimensions, script prints:
 
 ### Recommended sanity test before launching GPU jobs:
 
-**Note: Use the converted output ome.tiff file by running the above step**
+**Note:** 
+
+* Use the converted output ome.tiff file by running the above step
+* Ajust ROI fron config.yaml -> **crop** parameters:
+ .. I have adjusted for this data set : `ESI008_20260412_slice02_cell01-Airyscan-Processing-08-Stitching-09.ome.tiff`  
+ .. In 1st place if you you run without --roi you can adjust the crop parameteres accordingly by visualising plots and print parameters in the screen. 
 
 **Step1: Preprocessing**
 
@@ -342,7 +347,7 @@ uv run python run_experiment_main_pipeline_script.py \
 ```
 ## Output structure:
 
-experiments/<br>
+experiments/ <br>
 └── `lr_1e-4_patch_100/`<br>
     ├── models/<br>
     └── plots/<br>
